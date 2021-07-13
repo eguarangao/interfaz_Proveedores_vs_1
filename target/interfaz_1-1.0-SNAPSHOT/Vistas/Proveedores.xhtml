@@ -1,0 +1,176 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                template="./Inicio.xhtml"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">   
+
+     <ui:define name="content">
+          <h:form id="form">
+               <div class="card crud-demo">
+                    <p:growl id="messages" showDetail="true"/>    
+
+                    <p:toolbar>
+                         <p:toolbarGroup>
+                              <p:commandButton value="Nuevo" icon="pi pi-plus" 
+                                               actionListener="#{bean.openNew()}" 
+                                               update=":form:" 
+                                               oncomplete="PF('manageProductDialog').show()" 
+                                               styleClass="ui-button-success" 
+                                               style="margin-right: .3rem">
+                                   <p:resetInput target=":form:"/> 
+                              </p:commandButton>
+                              <p:commandButton value="Editar" 
+                                               icon="pi pi-pencil" 
+                                               styleClass="ui-button-info" 
+                                               style="margin-right: .3rem" >
+                                   <!--    <p:resetInput target=""/> !-->
+                              </p:commandButton>
+                              <p:commandButton id="delete-products-button"
+                                               value="#{bean.deleteButtonMessage}" 
+                                               icon="pi pi-times" 
+                                               actionListener="#{bean.deleteSelectedProducts()}"
+                                               styleClass="ui-button-danger" 
+                                               disabled="#{!bean.hasSelectedProducts()}"
+                                               update="@this"
+                                               style="margin-right: .3rem">
+
+                                   <p:confirm  header="Confirmation"
+                                               message="Dese eliminar el producto seleccionado?"
+                                               icon="pi pi-exclamation-triangle" />
+
+                              </p:commandButton>
+                              <p:commandButton value="Buscar" 
+                                               icon="pi pi-search" 
+                                               styleClass="ui-button-warning" 
+                                               style="margin-right: .3rem">                           
+                              </p:commandButton>
+                         </p:toolbarGroup>
+
+                         <p:toolbarGroup align="right">
+                              <p:fileUpload mode="simple" skinSimple="true" label="Import" chooseIcon="pi pi-download"/>
+                              <p:commandButton value="Export" icon="pi pi-upload" styleClass="ui-button-help" ajax="false">
+                                   <p:dataExporter type="pdf" target="dt-products" fileName="products"/>
+                              </p:commandButton>
+                         </p:toolbarGroup>
+                    </p:toolbar>
+                    <p:dataTable  id="dt-products" 
+                                  widgetVar="dtProducts"
+                                  value="#{bean.lista}" 
+                                  var="p" 
+                                  reflow="true"
+                                  rowKey="#{session.id}" 
+                                  styleClass="products-table" 
+                                  paginator="true"
+                                  rows="10" 
+                                  selection="#{bean.selectedproveedores}" 
+                                  rowSelectMode="add" 
+                                  paginatorPosition="bottom" >
+                         <f:facet name="header">
+                              <div class ="products-table-header">
+                                   <span style="font-weight: bold">Proveedor</span>
+                                   <span class="filter-container ui-input-icon-left">
+                                        <i class="pi pi-search"></i>
+                                        <p:inputText id="globalFilter" onkeyup="PF('dtProducts').filter()" placeholder="Search"/>
+                                   </span>
+
+                              </div>
+                         </f:facet>
+                         <p:ajax event="rowSelect" update=":form:delete-products-button"/>
+                         <p:ajax event="rowUnselect" update=":form:delete-products-button"/>
+                         <p:ajax event="rowSelectCheckbox" update=":form:delete-products-button"/>
+                         <p:ajax event="rowUnselectCheckbox" update=":form:delete-products-button"/>
+                         <p:ajax event="toggleSelect" update=":form:delete-products-button"/>
+
+                         <p:column selectionMode="multiple" exportable="false">
+                         </p:column>
+
+                         <p:column headerText="Proveedor" sortBy="#{bean.selectedproveedor.code}" filterBy="#{bean.selectedproveedor.code}">
+                              <h:outputText value="#{p.code}"/>
+                         </p:column>
+
+                         <p:column headerText="Nombre" >
+                              <h:outputText value="#{p.nombre}"/>
+                         </p:column>                       
+
+                         <p:column headerText="Saldo" >
+                              <h:outputText value="#{p.saldo}" style="font-weight: 700">
+                                   <f:convertNumber currencySymbol="$" type="currency"/>
+                              </h:outputText>
+                         </p:column>
+
+                         <p:column headerText="Teléfono">
+                              <h:outputText value="#{p.telefono}"/>
+                         </p:column>
+
+                         <p:column headerText="Contacto">
+                              <h:outputText value="#{p.contacto}"/>
+                         </p:column>
+
+                         <p:column headerText="Estado">
+                              <h:outputText styleClass="product-badge"
+                                            value="#{p.estado}"/>
+                         </p:column>
+                    </p:dataTable>
+
+                    <p:dialog header="Proveedor Detalles" responsive="true" showEffect="fade" modal="true" widgetVar="manageProductDialog">
+                         <p:outputPanel  class="ui-fluid">
+                              <p:outputPanel  rendered="#{not empty bean.selectedproveedor}">
+                                   <div class="p-field">
+                                        <p:outputLabel for="name">Nombre</p:outputLabel>
+                                        <p:inputText id="name" value="#{bean.selectedproveedor.nombre}"/>
+                                   </div>
+                                   <div class="p-field">
+                                        <p:outputLabel for="description">Description</p:outputLabel>
+                                        <p:inputTextarea id="description" value="#{bean.selectedproveedor.telefono}"/>
+                                   </div>
+                                   <div class="p-field">
+                                        <p:outputLabel for="category">Category</p:outputLabel>
+                                        <p:selectOneRadio id="category" value="#{bean.selectedproveedor.saldo}"
+                                                          layout="responsive" columns="2">
+                                             <f:selectItem itemLabel="Accessories" itemValue="Accessories"/>
+                                             <f:selectItem itemLabel="Clothing" itemValue="Clothing"/>
+                                             <f:selectItem itemLabel="Electronics" itemValue="Electronics"/>
+                                             <f:selectItem itemLabel="Fitness" itemValue="Fitness"/>
+                                        </p:selectOneRadio>
+                                   </div>
+                                   <div class="p-formgrid p-grid">
+                                        <div class="p-field p-col">
+                                             <p:outputLabel for="price">Price</p:outputLabel>
+                                             <p:inputNumber id="price" value="#{bean.selectedproveedor.saldo}"
+                                                            symbol=" USD" symbolPosition="s"
+                                                            decimalSeparator="." thousandSeparator=","/>
+                                        </div>
+                                        <div class="p-field p-col">
+                                             <p:outputLabel for="quantity">Quantity</p:outputLabel>
+                                             <p:spinner id="quantity" min="0" value="#{bean.selectedproveedor.telefono}"/>
+                                        </div>
+                                   </div>
+                              </p:outputPanel>
+                         </p:outputPanel>
+                         <f:facet name="footer">
+                              <p:commandButton value="Save" icon="pi pi-check" actionListener="#{bean.saveProduct()}"
+                                               update="" process=""/>
+                              <p:commandButton value="Cancel" icon="pi pi-times" onclick="PF('manageProductDialog').hide()"
+                                               class="ui-button-secondary"/>
+                         </f:facet>
+                    </p:dialog>
+
+                    <p:confirmDialog widgetVar="deleteProductDialog" showEffect="fade" width="300"
+                                     message="Delete the product?" header="Confirm" severity="warn">
+                         <p:commandButton value="Yes" icon="pi pi-check" actionListener="#{bean.deleteProduct()}"
+                                          process="@this" oncomplete="PF('deleteProductDialog').hide()"/>
+                         <p:commandButton value="No" type="button" styleClass="ui-button-secondary" icon="pi pi-times"
+                                          onclick="PF('deleteProductDialog').hide()"/>
+                    </p:confirmDialog>
+
+                    <p:confirmDialog global="true" showEffect="fade" width="300">
+                         <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="pi pi-check"/>
+                         <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no ui-button-secondary"
+                                          icon="pi pi-times"/>
+                    </p:confirmDialog>
+               </div>
+          </h:form>
+     </ui:define>   
+</ui:composition>
